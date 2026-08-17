@@ -1,4 +1,3 @@
-/* eslint-disable */
 /* tslint:disable */
 
 /**
@@ -359,3 +358,4 @@ async function serializeRequest(request) {
     keepalive: request.keepalive,
   }
 }
+
