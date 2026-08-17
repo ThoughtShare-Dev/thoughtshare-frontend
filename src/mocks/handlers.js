@@ -22,7 +22,6 @@ import {
   notifications,
   reports,
   nextId,
-  findAcceptedConnection,
   memberPublicView,
   memberMeView,
 } from "./db.js";
@@ -331,7 +330,11 @@ function requestListItem(r) {
     status: r.status,
     createdAt: r.createdAt,
     sender: { id: sender.id, name: sender.name, profilePictureUrl: sender.profilePictureUrl },
-    recipient: { id: recipient.id, name: recipient.name, profilePictureUrl: recipient.profilePictureUrl },
+    recipient: {
+      id: recipient.id,
+      name: recipient.name,
+      profilePictureUrl: recipient.profilePictureUrl,
+    },
   };
 }
 
@@ -353,7 +356,11 @@ const requestHandlers = [
       (r) => r.senderId === caller.id && r.recipientId === recipientId && r.status === "PENDING"
     );
     if (alreadyPending) {
-      return fail(409, "REQUEST_ALREADY_PENDING", "You already have a pending request to this member");
+      return fail(
+        409,
+        "REQUEST_ALREADY_PENDING",
+        "You already have a pending request to this member"
+      );
     }
 
     const req = {
@@ -552,7 +559,11 @@ const reviewHandlers = [
           rating: r.rating,
           reviewText: r.reviewText,
           createdAt: r.createdAt,
-          reviewer: { id: reviewer.id, name: reviewer.name, profilePictureUrl: reviewer.profilePictureUrl },
+          reviewer: {
+            id: reviewer.id,
+            name: reviewer.name,
+            profilePictureUrl: reviewer.profilePictureUrl,
+          },
         };
       })
     );
@@ -587,10 +598,17 @@ const reportHandlers = [
       return fail(400, "SELF_REPORT", "You cannot report yourself");
     }
     const alreadyPending = reports.some(
-      (r) => r.reporterId === caller.id && r.reportedMemberId === reportedMemberId && r.status === "PENDING"
+      (r) =>
+        r.reporterId === caller.id &&
+        r.reportedMemberId === reportedMemberId &&
+        r.status === "PENDING"
     );
     if (alreadyPending) {
-      return fail(409, "REPORT_ALREADY_PENDING", "You already have a pending report against this member");
+      return fail(
+        409,
+        "REPORT_ALREADY_PENDING",
+        "You already have a pending report against this member"
+      );
     }
 
     const report = {
