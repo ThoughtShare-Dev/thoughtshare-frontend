@@ -41,7 +41,7 @@ export default function ReviewForm({ requestId, existingReview, onSaved }) {
   if (editLimitReached) {
     return (
       <div className="banner banner--error">
-        This review has reached its edit limit and can't be changed again.
+        This review has reached its edit limit and can&apos;t be changed again.
       </div>
     );
   }
