@@ -1,5 +1,7 @@
 import axios from "axios";
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() || "/api/v1";
+
 /**
  * Shared axios instance. Dev 2 and Dev 3: build your resource files
  * (profileApi.js, requestsApi.js, reviewsApi.js, etc.) on top of this —
@@ -10,7 +12,7 @@ import axios from "axios";
  * need to read or attach the token yourself.
  */
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: apiBaseUrl,
   headers: { "Content-Type": "application/json" },
 });
 
