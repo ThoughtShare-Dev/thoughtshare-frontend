@@ -1,0 +1,63 @@
+.member-profile-page__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.member-profile-page__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-primary-dark);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.member-profile-page__section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.member-profile-page__skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .member-profile-page__skills-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.member-profile-page__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.member-profile-page__contact {
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.member-profile-page__contact p {
+  color: var(--color-ink);
+  margin-bottom: var(--space-3);
+}
+
+.member-profile-page__contact p:last-child {
+  margin-bottom: 0;
+}

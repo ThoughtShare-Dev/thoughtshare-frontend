@@ -1,0 +1,44 @@
+/* SkillTag — built on Dev 1's shared tokens (styles/global.css).
+   No new colors introduced: teach uses --color-accent (Teach Amber),
+   learn uses --color-primary (Signal Blue), per the palette already
+   documented at the top of global.css. */
+
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px var(--space-3);
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.skill-tag--teach {
+  background-color: rgba(242, 166, 59, 0.16);
+  border-color: rgba(242, 166, 59, 0.4);
+  color: var(--color-accent-dark);
+}
+
+.skill-tag--learn {
+  background-color: var(--color-primary-tint);
+  border-color: var(--color-border-strong);
+  color: var(--color-primary);
+}
+
+.skill-tag__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.7;
+  color: inherit;
+  font-size: inherit;
+}
+.skill-tag__remove:hover {
+  opacity: 1;
+}
