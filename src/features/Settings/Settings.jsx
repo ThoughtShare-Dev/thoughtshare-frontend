@@ -37,7 +37,9 @@ export default function Settings() {
 
       <div className="entity-card" style={{ maxWidth: 480, marginTop: "var(--space-4)" }}>
         <p style={{ fontWeight: 600 }}>Log out</p>
-        <p className="entity-card__meta">You'll need to log in again to access your account.</p>
+        <p className="entity-card__meta">
+          You&apos;ll need to log in again to access your account.
+        </p>
         <button
           type="button"
           className="btn btn--secondary"
