@@ -8,6 +8,9 @@ import ErrorPage from "../pages/ErrorPage.jsx";
 import Login from "../features/auth/Login.jsx";
 import Register from "../features/auth/Register.jsx";
 import PlaceholderPage from "../components/PlaceholderPage.jsx";
+import Requests from "../features/requests/Requests.jsx";
+import Notifications from "../features/notifications/Notifications.jsx";
+import Review from "../features/reviews/Review.jsx";
 
 /**
  * Full route table for the app. Every route exists from day one, even
@@ -81,7 +84,7 @@ export default function AppRoutes() {
         path="/requests"
         element={
           <ProtectedRoute>
-            <PlaceholderPage title="Requests" owner="Dev 3" />
+            <Requests />
           </ProtectedRoute>
         }
       />
@@ -89,7 +92,7 @@ export default function AppRoutes() {
         path="/notifications"
         element={
           <ProtectedRoute>
-            <PlaceholderPage title="Notifications" owner="Dev 3" />
+            <Notifications />
           </ProtectedRoute>
         }
       />
@@ -97,7 +100,7 @@ export default function AppRoutes() {
         path="/connections/:id/review"
         element={
           <ProtectedRoute>
-            <PlaceholderPage title="Leave / Edit Review" owner="Dev 3" />
+            <Review />
           </ProtectedRoute>
         }
       />
