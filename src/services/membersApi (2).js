@@ -22,6 +22,32 @@ const membersApi = {
   search({ skill, mode = "teach", page, pageSize } = {}) {
     return api.get("/search", { params: { skill, mode, page, pageSize } }).then((r) => r.data.data);
   },
+
+  // --- Teaching skills — API_CONTRACT.md §9.3 ---
+  addTeachingSkill({ skillId, contextNote }) {
+    return api
+      .post("/members/me/teaching-skills", { skillId, contextNote })
+      .then((r) => r.data.data);
+  },
+  updateTeachingSkill(id, { contextNote }) {
+    return api.put(`/members/me/teaching-skills/${id}`, { contextNote }).then((r) => r.data.data);
+  },
+  removeTeachingSkill(id) {
+    return api.delete(`/members/me/teaching-skills/${id}`);
+  },
+
+  // --- Learning skills — API_CONTRACT.md §9.3 ---
+  addLearningSkill({ skillId, reasonNote }) {
+    return api
+      .post("/members/me/learning-skills", { skillId, reasonNote })
+      .then((r) => r.data.data);
+  },
+  updateLearningSkill(id, { reasonNote }) {
+    return api.put(`/members/me/learning-skills/${id}`, { reasonNote }).then((r) => r.data.data);
+  },
+  removeLearningSkill(id) {
+    return api.delete(`/members/me/learning-skills/${id}`);
+  },
 };
 
 export default membersApi;

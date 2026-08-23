@@ -27,6 +27,7 @@ export const members = new Map([
       teachingSkills: [],
       learningSkills: [
         {
+          id: "f1a2b3c4-1111-4aaa-8000-000000000001",
           skillId: "e5b84c63-ca75-4fbe-d396-5cabcb7e4f85",
           name: "Excel",
           reasonNote: "I want to improve my employability.",
@@ -52,6 +53,7 @@ export const members = new Map([
       isActive: true,
       teachingSkills: [
         {
+          id: "f1a2b3c4-2222-4aaa-8000-000000000002",
           skillId: "e5b84c63-ca75-4fbe-d396-5cabcb7e4f85",
           name: "Excel",
           contextNote: "Five years building financial models.",
@@ -59,6 +61,7 @@ export const members = new Map([
       ],
       learningSkills: [
         {
+          id: "f1a2b3c4-3333-4aaa-8000-000000000003",
           skillId: "b8eb7f96-fda8-42eb-a6c9-8fdefeab7c18",
           name: "Video Editing",
           reasonNote: "I want to create educational content.",
@@ -84,6 +87,7 @@ export const members = new Map([
       isActive: true,
       teachingSkills: [
         {
+          id: "f1a2b3c4-4444-4aaa-8000-000000000004",
           skillId: "e5b84c63-ca75-4fbe-d396-5cabcb7e4f85",
           name: "Excel",
           contextNote: "Happy to walk through spreadsheets.",
@@ -178,6 +182,15 @@ export function memberPublicView(member, viewerId) {
     ratingCount: member.ratingCount,
     preferredContactType: connected ? member.preferredContactType : null,
     preferredContactValue: connected ? member.preferredContactValue : null,
+    // NOTE: API_CONTRACT.md §8.1's example JSON for embedded teaching/
+    // learning skills omits `id`, showing only {skillId, name,
+    // contextNote|reasonNote}. We include `id` here (and in memberMeView
+    // below) anyway — without it, the client has no way to target an
+    // existing skill for PUT/DELETE after a fresh page load, only ones
+    // added in the current session where the POST response's id was
+    // captured client-side. This is additive (an extra field, nothing
+    // removed/renamed) so it doesn't break the contract, but flag to
+    // backend/Dev 1 to confirm the real API does the same.
     teachingSkills: member.teachingSkills,
     learningSkills: member.learningSkills,
   };

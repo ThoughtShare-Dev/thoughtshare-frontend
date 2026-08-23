@@ -277,6 +277,116 @@ const memberHandlers = [
     return ok(memberMeView(caller));
   }),
 
+  // --- Teaching skills ---
+  http.post(`${BASE}/members/me/teaching-skills`, async ({ request }) => {
+    const caller = getAuthedMember(request);
+    if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
+
+    const body = await request.json();
+    if (!body.skillId) {
+      return fail(400, "VALIDATION_ERROR", "skillId is required", "skillId");
+    }
+    if (!body.contextNote || !body.contextNote.trim()) {
+      return fail(400, "VALIDATION_ERROR", "contextNote is required", "contextNote");
+    }
+    const skill = skills.find((s) => s.id === body.skillId);
+    if (!skill) return fail(404, "NOT_FOUND", "Skill not found");
+    if (caller.teachingSkills.length >= 5) {
+      return fail(400, "MAX_TEACHING_SKILLS_REACHED", "Maximum 5 teaching skills");
+    }
+
+    const entry = {
+      id: nextId(),
+      skillId: skill.id,
+      name: skill.name,
+      contextNote: body.contextNote,
+    };
+    caller.teachingSkills.push(entry);
+    return ok(entry, 201);
+  }),
+
+  http.put(`${BASE}/members/me/teaching-skills/:id`, async ({ request, params }) => {
+    const caller = getAuthedMember(request);
+    if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
+
+    const entry = caller.teachingSkills.find((s) => s.id === params.id);
+    if (!entry) return fail(404, "NOT_FOUND", "Teaching skill not found");
+
+    const body = await request.json();
+    if (!body.contextNote || !body.contextNote.trim()) {
+      return fail(400, "VALIDATION_ERROR", "contextNote is required", "contextNote");
+    }
+    entry.contextNote = body.contextNote;
+    return ok(entry);
+  }),
+
+  http.delete(`${BASE}/members/me/teaching-skills/:id`, ({ request, params }) => {
+    const caller = getAuthedMember(request);
+    if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
+
+    const before = caller.teachingSkills.length;
+    caller.teachingSkills = caller.teachingSkills.filter((s) => s.id !== params.id);
+    if (caller.teachingSkills.length === before) {
+      return fail(404, "NOT_FOUND", "Teaching skill not found");
+    }
+    return noContent();
+  }),
+
+  // --- Learning skills ---
+  http.post(`${BASE}/members/me/learning-skills`, async ({ request }) => {
+    const caller = getAuthedMember(request);
+    if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
+
+    const body = await request.json();
+    if (!body.skillId) {
+      return fail(400, "VALIDATION_ERROR", "skillId is required", "skillId");
+    }
+    if (!body.reasonNote || !body.reasonNote.trim()) {
+      return fail(400, "VALIDATION_ERROR", "reasonNote is required", "reasonNote");
+    }
+    const skill = skills.find((s) => s.id === body.skillId);
+    if (!skill) return fail(404, "NOT_FOUND", "Skill not found");
+    if (caller.learningSkills.length >= 6) {
+      return fail(400, "MAX_LEARNING_SKILLS_REACHED", "Maximum 6 learning skills");
+    }
+
+    const entry = {
+      id: nextId(),
+      skillId: skill.id,
+      name: skill.name,
+      reasonNote: body.reasonNote,
+    };
+    caller.learningSkills.push(entry);
+    return ok(entry, 201);
+  }),
+
+  http.put(`${BASE}/members/me/learning-skills/:id`, async ({ request, params }) => {
+    const caller = getAuthedMember(request);
+    if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
+
+    const entry = caller.learningSkills.find((s) => s.id === params.id);
+    if (!entry) return fail(404, "NOT_FOUND", "Learning skill not found");
+
+    const body = await request.json();
+    if (!body.reasonNote || !body.reasonNote.trim()) {
+      return fail(400, "VALIDATION_ERROR", "reasonNote is required", "reasonNote");
+    }
+    entry.reasonNote = body.reasonNote;
+    return ok(entry);
+  }),
+
+  http.delete(`${BASE}/members/me/learning-skills/:id`, ({ request, params }) => {
+    const caller = getAuthedMember(request);
+    if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
+
+    const before = caller.learningSkills.length;
+    caller.learningSkills = caller.learningSkills.filter((s) => s.id !== params.id);
+    if (caller.learningSkills.length === before) {
+      return fail(404, "NOT_FOUND", "Learning skill not found");
+    }
+    return noContent();
+  }),
+
   http.get(`${BASE}/search`, ({ request }) => {
     const caller = getAuthedMember(request);
     if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
