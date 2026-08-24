@@ -628,7 +628,127 @@ const reportHandlers = [
   }),
 ];
 
-// --- 10. Health ------------------------------------------------------------
+// --- 10. Admin moderation (reports + reviews) -------------------------------
+// Not in the original API contract — designed here as a reasonable target
+// shape, following the same conventions as the rest of the contract
+// (envelope, pagination, error codes). Backend doesn't have these yet;
+// build against this shape so the frontend doesn't need to change once
+// the backend catches up.
+const adminModerationHandlers = [
+  http.get(`${BASE}/admin/reports`, ({ request }) => {
+    const caller = getAuthedMember(request);
+    if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
+    if (caller.role !== "ADMIN") return fail(403, "FORBIDDEN", "Admin access required");
+
+    const url = new URL(request.url);
+    const status = url.searchParams.get("status"); // optional filter: PENDING | DISMISSED | CONFIRMED
+    let list = [...reports].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    if (status) list = list.filter((r) => r.status === status);
+
+    const paged = paginate(list, url.searchParams.get("page"), url.searchParams.get("pageSize"));
+    return ok({
+      ...paged,
+      items: paged.items.map((r) => {
+        const reporter = members.get(r.reporterId);
+        const reportedMember = members.get(r.reportedMemberId);
+        return {
+          id: r.id,
+          reason: r.reason,
+          status: r.status,
+          createdAt: r.createdAt,
+          reporter: reporter ? { id: reporter.id, name: reporter.name } : null,
+          reportedMember: reportedMember
+            ? {
+                id: reportedMember.id,
+                name: reportedMember.name,
+                isActive: reportedMember.isActive,
+              }
+            : null,
+        };
+      }),
+    });
+  }),
+
+  http.patch(`${BASE}/admin/reports/:id/resolve`, async ({ request, params }) => {
+    const caller = getAuthedMember(request);
+    if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
+    if (caller.role !== "ADMIN") return fail(403, "FORBIDDEN", "Admin access required");
+
+    const report = reports.find((r) => r.id === params.id);
+    if (!report) return fail(404, "NOT_FOUND", "Report not found");
+    if (report.status !== "PENDING") {
+      return fail(409, "INVALID_STATE", "This report has already been resolved");
+    }
+
+    const body = await request.json();
+    const action = body?.action; // "DISMISS" | "CONFIRM"
+    if (!["DISMISS", "CONFIRM"].includes(action)) {
+      return fail(400, "VALIDATION_ERROR", "action must be DISMISS or CONFIRM", "action");
+    }
+
+    const reportedMember = members.get(report.reportedMemberId);
+    report.status = action === "DISMISS" ? "DISMISSED" : "CONFIRMED";
+    report.resolvedAt = new Date().toISOString();
+
+    if (reportedMember) {
+      if (action === "DISMISS") {
+        // Only unhide if no other pending report exists against them.
+        const stillPending = reports.some(
+          (r) => r.reportedMemberId === reportedMember.id && r.status === "PENDING"
+        );
+        if (!stillPending) reportedMember.hiddenFromSearch = false;
+      } else {
+        // CONFIRM: deactivate the member's account.
+        reportedMember.isActive = false;
+      }
+    }
+
+    return ok({ id: report.id, status: report.status, resolvedAt: report.resolvedAt });
+  }),
+
+  http.get(`${BASE}/admin/reviews`, ({ request }) => {
+    const caller = getAuthedMember(request);
+    if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
+    if (caller.role !== "ADMIN") return fail(403, "FORBIDDEN", "Admin access required");
+
+    const url = new URL(request.url);
+    const list = [...reviews].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const paged = paginate(list, url.searchParams.get("page"), url.searchParams.get("pageSize"));
+
+    return ok({
+      ...paged,
+      items: paged.items.map((r) => {
+        const reviewer = members.get(r.reviewerId);
+        const reviewee = members.get(r.revieweeId);
+        return {
+          id: r.id,
+          rating: r.rating,
+          reviewText: r.reviewText,
+          createdAt: r.createdAt,
+          reviewer: reviewer ? { id: reviewer.id, name: reviewer.name } : null,
+          reviewee: reviewee ? { id: reviewee.id, name: reviewee.name } : null,
+        };
+      }),
+    });
+  }),
+
+  http.delete(`${BASE}/admin/reviews/:id`, ({ request, params }) => {
+    const caller = getAuthedMember(request);
+    if (!caller) return fail(401, "UNAUTHENTICATED", "Invalid or expired token");
+    if (caller.role !== "ADMIN") return fail(403, "FORBIDDEN", "Admin access required");
+
+    const idx = reviews.findIndex((r) => r.id === params.id);
+    if (idx === -1) return fail(404, "NOT_FOUND", "Review not found");
+
+    const revieweeId = reviews[idx].revieweeId;
+    reviews.splice(idx, 1);
+    recalcRating(revieweeId);
+
+    return noContent();
+  }),
+];
+
+// --- 11. Health ------------------------------------------------------------
 const healthHandlers = [
   http.get(`${ORIGIN}/health`, () =>
     ok({ status: "ok", db: "connected (mock)", uptime: Math.floor(performance.now() / 1000) })
@@ -643,5 +763,6 @@ export const handlers = [
   ...reviewHandlers,
   ...notificationHandlers,
   ...reportHandlers,
+  ...adminModerationHandlers,
   ...healthHandlers,
 ];

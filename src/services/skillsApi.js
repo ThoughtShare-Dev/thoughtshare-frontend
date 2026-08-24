@@ -2,8 +2,8 @@ import api from "./api.js";
 
 /**
  * Skill library. GET /skills is used by the SkillAutocomplete component
- * (Search, Edit Profile — see the PRD's Search and Edit Profile screens).
- * Admin CRUD is for the Admin — Skill Library screen only.
+ * (Search, Edit Profile, see the PRD's Search and Edit Profile screens).
+ * Admin CRUD is for the Admin. Skill Library screen only.
  */
 const skillsApi = {
   list({ category, page, pageSize } = {}) {

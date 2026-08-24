@@ -37,13 +37,21 @@ export default function Login() {
     } catch (err) {
       const status = err?.response?.status;
       const code = err?.response?.data?.error?.code;
+      const apiField = err?.response?.data?.error?.field;
+      const apiMessage = err?.response?.data?.error?.message;
+
       if (status === 429 || code === "TOO_MANY_ATTEMPTS") {
         setFormError("Too many attempts. Please wait a few minutes and try again.");
       } else if (code === "ACCOUNT_DEACTIVATED") {
         setFormError("This account has been deactivated. Contact support if you think that's a mistake.");
+      } else if (code === "VALIDATION_ERROR" && apiField) {
+        // Real, specific validation error from the backend (e.g. "Email is
+        // required") — show it inline against the actual field instead of
+        // a generic message.
+        setFieldErrors((prev) => ({ ...prev, [apiField]: apiMessage }));
       } else {
-        // INVALID_CREDENTIALS and anything else on this screen: generic
-        // message, never confirm which field was wrong.
+        // INVALID_CREDENTIALS and anything else here: deliberately generic
+        // — never confirm which field was wrong on a real login attempt.
         setFormError("Invalid email or password.");
       }
     } finally {

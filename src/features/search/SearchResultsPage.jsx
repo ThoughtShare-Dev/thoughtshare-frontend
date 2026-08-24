@@ -54,8 +54,8 @@ export default function SearchResultsPage() {
     <div className="page">
       <p className="auth-card__eyebrow">Results</p>
       <h1>{skill || "Search"}</h1>
-      <Link to="/search" className="search-results__back">
-        &larr; New search
+      <Link to="/search" className="btn btn--ghost" style={{ marginBottom: "var(--space-4)" }}>
+        ← New search
       </Link>
 
       {error && <div className="banner banner--error">{error}</div>}
