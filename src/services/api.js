@@ -16,7 +16,7 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// --- in-memory token store -------------------------------------------------
+// --- in-memory token store
 // Kept out of localStorage to reduce XSS exposure. AuthContext is the only
 // module that should call setToken/clearToken directly.
 let currentToken = null;
@@ -29,7 +29,7 @@ export function clearToken() {
   currentToken = null;
 }
 
-// --- 401 handling -----------------------------------------------------------
+// --- 401 handling
 // AuthContext registers itself here on mount so a 401 from anywhere in the
 // app (any screen, any developer's code) triggers a single, consistent
 // logout + redirect instead of each screen handling it separately.
@@ -39,7 +39,7 @@ export function registerUnauthorizedHandler(handler) {
   onUnauthorized = handler;
 }
 
-// --- interceptors -------------------------------------------------------
+// --- interceptors
 api.interceptors.request.use((config) => {
   if (currentToken) {
     config.headers.Authorization = `Bearer ${currentToken}`;

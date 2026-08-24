@@ -1,13 +1,12 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import AdminRoute from "./AdminRoute.jsx";
-import Settings from "../features/Settings/Settings.jsx";
+
 import Landing from "../pages/Landing.jsx";
 import Dashboard from "../pages/Dashboard.jsx";
 import ErrorPage from "../pages/ErrorPage.jsx";
 import Login from "../features/auth/Login.jsx";
 import Register from "../features/auth/Register.jsx";
-import PlaceholderPage from "../components/PlaceholderPage.jsx";
 
 // Dev 2 — Profile & Discovery
 import SearchPage from "../features/search/SearchPage.jsx";
@@ -20,7 +19,21 @@ import EditProfilePage from "../features/profile/EditProfilePage.jsx";
 import Requests from "../features/requests/Requests.jsx";
 import Notifications from "../features/notifications/Notifications.jsx";
 import Review from "../features/reviews/Review.jsx";
+import Settings from "../features/settings/Settings.jsx";
+import AdminReports from "../features/admin/AdminReports.jsx";
+import AdminSkillLibrary from "../features/admin/AdminSkillLibrary.jsx";
+import AdminReviewModeration from "../features/admin/AdminReviewModeration.jsx";
+import VisionFeed from "../features/vision/VisionFeed.jsx";
+import VisionChat from "../features/vision/VisionChat.jsx";
+import VisionUpgrade from "../features/vision/VisionUpgrade.jsx";
 
+/**
+ * Full route table for the app. Every route exists from day one, even
+ * screens owned by Dev 2 / Dev 3, so the app is navigable immediately.
+ 
+ * To wire in a real screen: import it above and swap the <PlaceholderPage />
+ * element for it below. Nothing else in this file needs to change.
+ */
 export default function AppRoutes() {
   return (
     <Routes>
@@ -29,7 +42,7 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* --- Member (protected) --- */}
+      {/*  Member (protected)  */}
       <Route
         path="/dashboard"
         element={
@@ -117,12 +130,12 @@ export default function AppRoutes() {
         }
       />
 
-      {/* --- Admin --- */}
+      {/*Admin */}
       <Route
         path="/admin/reports"
         element={
           <AdminRoute>
-            <PlaceholderPage title="Admin — Reports" owner="Admin" />
+            <AdminReports />
           </AdminRoute>
         }
       />
@@ -130,7 +143,7 @@ export default function AppRoutes() {
         path="/admin/skills"
         element={
           <AdminRoute>
-            <PlaceholderPage title="Admin — Skill Library" owner="Admin" />
+            <AdminSkillLibrary />
           </AdminRoute>
         }
       />
@@ -138,12 +151,17 @@ export default function AppRoutes() {
         path="/admin/reviews"
         element={
           <AdminRoute>
-            <PlaceholderPage title="Admin — Review Moderation" owner="Admin" />
+            <AdminReviewModeration />
           </AdminRoute>
         }
       />
 
-      {/* --- Error pages --- */}
+      {/* VISION PROTOTYPE (demo only, not real functionality)  */}
+      <Route path="/vision/feed" element={<VisionFeed />} />
+      <Route path="/vision/chat/:memberId" element={<VisionChat />} />
+      <Route path="/vision/upgrade" element={<VisionUpgrade />} />
+
+      {/* Error pages  */}
       <Route path="/403" element={<ErrorPage code="403" />} />
       <Route path="*" element={<ErrorPage code="404" />} />
     </Routes>
