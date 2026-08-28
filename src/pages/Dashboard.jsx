@@ -35,7 +35,7 @@ export default function Dashboard() {
         Welcome back, {firstName}
       </h1>
       <p style={{ color: "var(--color-ink-soft)", marginBottom: "var(--space-5)", maxWidth: 520 }}>
-        Here's what you can do today,search for a new skill to learn, keep an eye on your requests,
+        Here is what you can do today,search for a new skill to learn, keep an eye on your requests,
         or catch up on anything new.
       </p>
 
