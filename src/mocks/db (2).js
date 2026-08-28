@@ -136,7 +136,11 @@ export const skills = [
   { id: "3a0d9d18-4f2a-440d-d8eb-41fabacd9e3a", name: "Canva", category: "Design" },
   { id: "b8eb7f96-fda8-42eb-a6c9-8fdefeab7c18", name: "Video Editing", category: "Media" },
   { id: "4b1eae29-502b-451e-e9fc-52bcbde0f4b0", name: "Photography", category: "Media" },
-  { id: "5c2fbf3a-613c-462f-fabd-63cdcef1a5c1", name: "Public Speaking", category: "Communication" },
+  {
+    id: "5c2fbf3a-613c-462f-fabd-63cdcef1a5c1",
+    name: "Public Speaking",
+    category: "Communication",
+  },
   { id: "6d30c04b-724d-473f-0bce-74dedf02b6d2", name: "Copywriting", category: "Communication" },
   { id: "7e41d15c-835e-4840-1cdf-85efe013c7e3", name: "Bookkeeping", category: "Finance" },
   { id: "8f52e26d-946f-4951-2def-96f0f124d8f4", name: "Financial Modelling", category: "Finance" },
