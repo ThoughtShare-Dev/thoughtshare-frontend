@@ -1,21 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth.js";
 import membersApi from "../../services/membersApi.js";
+import skillsApi from "../../services/skillsApi.js";
 import { getErrorMessage, getErrorField } from "../../services/api.js";
 import SkillTag from "../../components/skills/SkillTag.jsx";
 import "./EditProfilePage.css";
 
 const CONTACT_TYPES = ["EMAIL", "WHATSAPP", "PHONE", "INSTAGRAM"];
+const MAX_TEACHING_SKILLS = 5;
+const MAX_LEARNING_SKILLS = 6;
 
 /**
- * /profile/edit — only edits fields PUT /members/me actually accepts:
- * name, bio, preferredContactType, preferredContactValue. See
- * membersApi.js and the mock handler for /members/me — there is currently
- * no endpoint to add/remove teaching or learning skills, so that section
- * is shown read-only with an explicit note rather than a form that would
- * silently fail to save. Flag to backend/Dev 1 if skill editing needs to
- * ship before demo — see the handoff notes.
+ * /profile/edit
+ *
+ * Two independent save paths, matching how the API is actually shaped:
+ *  - name/bio/contact go through PUT /members/me (handleSubmit below)
+ *  - each teaching/learning skill is its own POST/DELETE against
+ *    /members/me/teaching-skills and /members/me/learning-skills
+ *    (API_CONTRACT.md §9.3) — adding or removing a skill saves
+ *    immediately, it isn't batched into the profile form's Save button.
  */
 export default function EditProfilePage() {
   const { user } = useAuth();
@@ -29,6 +33,29 @@ export default function EditProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [fieldError, setFieldError] = useState(null);
+
+  // Local copies so add/remove feel instant without waiting on a full
+  // /auth/me refetch — see the AuthContext note further down.
+  const [teachingSkills, setTeachingSkills] = useState(user?.teachingSkills ?? []);
+  const [learningSkills, setLearningSkills] = useState(user?.learningSkills ?? []);
+
+  const [skillLibrary, setSkillLibrary] = useState([]);
+  const [skillLoadError, setSkillLoadError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    skillsApi
+      .list({ pageSize: 100 })
+      .then((res) => {
+        if (!cancelled) setSkillLibrary(res.items ?? []);
+      })
+      .catch((err) => {
+        if (!cancelled) setSkillLoadError(getErrorMessage(err, "Couldn't load the skill library."));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (!user) return null;
 
@@ -129,21 +156,152 @@ export default function EditProfilePage() {
         </div>
       </form>
 
-      <section className="edit-profile-page__skills-note">
-        <h2>Skills</h2>
-        <p className="field-hint">
-          Adding or removing skills isn&apos;t supported by the API yet — this list is read-only
-          for now. Flag to backend if it needs to ship before demo.
-        </p>
-        <div className="edit-profile-page__skills">
-          {(user.teachingSkills ?? []).map((s) => (
-            <SkillTag key={s.skillId} label={s.name} variant="teach" note={s.contextNote} />
-          ))}
-          {(user.learningSkills ?? []).map((s) => (
-            <SkillTag key={s.skillId} label={s.name} variant="learn" note={s.reasonNote} />
-          ))}
-        </div>
-      </section>
+      {skillLoadError && <div className="banner banner--error">{skillLoadError}</div>}
+
+      <SkillSection
+        title="Skills you teach"
+        variant="teach"
+        max={MAX_TEACHING_SKILLS}
+        skills={teachingSkills}
+        skillLibrary={skillLibrary}
+        noteLabel="Context"
+        notePlaceholder="e.g. Five years building financial models."
+        onAdd={async (skillId, note) => {
+          const created = await membersApi.addTeachingSkill({ skillId, contextNote: note });
+          setTeachingSkills((prev) => [...prev, created]);
+        }}
+        onRemove={async (id) => {
+          await membersApi.removeTeachingSkill(id);
+          setTeachingSkills((prev) => prev.filter((s) => s.id !== id));
+        }}
+      />
+
+      <SkillSection
+        title="Skills you want to learn"
+        variant="learn"
+        max={MAX_LEARNING_SKILLS}
+        skills={learningSkills}
+        skillLibrary={skillLibrary}
+        noteLabel="Reason"
+        notePlaceholder="e.g. Want to create educational content."
+        onAdd={async (skillId, note) => {
+          const created = await membersApi.addLearningSkill({ skillId, reasonNote: note });
+          setLearningSkills((prev) => [...prev, created]);
+        }}
+        onRemove={async (id) => {
+          await membersApi.removeLearningSkill(id);
+          setLearningSkills((prev) => prev.filter((s) => s.id !== id));
+        }}
+      />
     </div>
+  );
+}
+
+/**
+ * One teach/learn skill list with its own add form. Kept local to this
+ * file (not promoted to components/) since nothing else needs it —
+ * promote it later if that changes.
+ */
+function SkillSection({
+  title,
+  variant,
+  max,
+  skills,
+  skillLibrary,
+  noteLabel,
+  notePlaceholder,
+  onAdd,
+  onRemove,
+}) {
+  const [skillId, setSkillId] = useState("");
+  const [note, setNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const atMax = skills.length >= max;
+  const noteKey = variant === "teach" ? "contextNote" : "reasonNote";
+
+  async function handleAdd(e) {
+    e.preventDefault();
+    setError(null);
+    if (!skillId) {
+      setError("Pick a skill.");
+      return;
+    }
+    if (!note.trim()) {
+      setError(`${noteLabel} is required.`);
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await onAdd(skillId, note.trim());
+      setSkillId("");
+      setNote("");
+    } catch (err) {
+      setError(getErrorMessage(err, "Couldn't add that skill."));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleRemove(id) {
+    setError(null);
+    try {
+      await onRemove(id);
+    } catch (err) {
+      setError(getErrorMessage(err, "Couldn't remove that skill."));
+    }
+  }
+
+  return (
+    <section className="edit-profile-page__skills-section">
+      <div className="edit-profile-page__skills-header">
+        <h2>{title}</h2>
+        <span className="field-hint">
+          {skills.length}/{max}
+        </span>
+      </div>
+
+      {error && <div className="banner banner--error">{error}</div>}
+
+      <div className="edit-profile-page__skills">
+        {skills.length === 0 && <p className="field-hint">Nothing added yet.</p>}
+        {skills.map((s) => (
+          <SkillTag
+            key={s.id}
+            label={s.name}
+            variant={variant}
+            note={s[noteKey]}
+            onRemove={() => handleRemove(s.id)}
+          />
+        ))}
+      </div>
+
+      {atMax ? (
+        <p className="field-hint">Maximum reached ({max}/{max}) — remove one to add another.</p>
+      ) : (
+        <form className="edit-profile-page__skill-form" onSubmit={handleAdd}>
+          <div className="field">
+            <label>Skill</label>
+            <select value={skillId} onChange={(e) => setSkillId(e.target.value)}>
+              <option value="">Choose a skill</option>
+              {skillLibrary.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                  {s.category ? ` · ${s.category}` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label>{noteLabel}</label>
+            <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder={notePlaceholder} />
+          </div>
+          <button type="submit" className="btn btn--secondary" disabled={isSubmitting}>
+            {isSubmitting ? "Adding…" : `Add ${variant === "teach" ? "teaching" : "learning"} skill`}
+          </button>
+        </form>
+      )}
+    </section>
   );
 }
